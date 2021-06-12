@@ -1,0 +1,51 @@
+version: "3.8"
+
+services:
+  ruby:
+    restart: "no"
+    image: redmine-ruby:30
+    tty: true
+    stdin_open: true
+    volumes:
+      - .:/redmine/plugins/redmine_serial_number_field
+      - ruby30:/usr/local/bundle
+      - histfile:/histfile
+    environment:
+      - HISTFILE=/histfile/.bash_history
+      - DATABASE_TYPE=${DATABASE_TYPE:-postgres}
+      - DATABASE_HOST=${DATABASE_HOST:-postgres}
+    ports:
+      - "${REDMINE_PORT:-3000}:3000"
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        RUBY_VERSION: "3.0.1"
+        REDMINE_SVN_PATH: "trunk@21031"
+
+  postgres:
+    restart: "no"
+    image: postgres:13.3
+    volumes:
+      - postgres13:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=redmine
+      - POSTGRES_HOST_AUTH_METHOD=trust
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --locale=C
+
+  mysql:
+    restart: "no"
+    image: mysql:5.7.34
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - mysql57:/var/lib/mysql
+    environment:
+      - MYSQL_DATABASE=redmine
+      - MYSQL_ROOT_PASSWORD=
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+
+volumes:
+  ruby30:
+  postgres13:
+  mysql57:
+  histfile:
